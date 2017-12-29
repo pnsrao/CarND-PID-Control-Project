@@ -41,6 +41,20 @@ public:
   * Calculate the total PID error.
   */
   double TotalError();
+
+  /*
+   * Additional function and variables for twiddle
+   */
+  bool twiddle();
+  bool inTwiddle;
+  double dp[3]; //for P,I and D parameters
+  double p[3];
+  double cum_err; //Tracks error across time steps
+  double best_err; // Maintains the best error for the twiddle algorithm
+  int twiddle_index;
+  int twiddle_dir;
+  int iStep;
+  void pid_resetmeas();
 };
 
 #endif /* PID_H */
