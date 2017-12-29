@@ -15,6 +15,7 @@ void PID::Init(double Kp_i, double Ki_i, double Kd_i) {
   p[0] = Kp_i;
   p[1] = Kd_i;
   p[2] = Ki_i;
+
   /* If any one of the coefficients is initialized to a non-zero value from main
      Assume that hyper parameter optimization is not required
   */
@@ -44,7 +45,7 @@ void PID::UpdateError(double cte) {
 
 double PID::TotalError() {
   double totError = Kp*p_error + Kd*d_error + Ki*i_error;
-  //cout << Kp<<" "<<p_error<<" "<<Kd<<" "<<d_error<<" "<<Ki<<" "<<i_error<<" "<<totError<<endl;
+  //cout << p_error<<" "<<d_error<<" "<<i_error<<endl;
   if(totError > 1){
     totError = 1;
   }
@@ -91,7 +92,7 @@ bool PID::twiddle(){
   if(iStep == N_TWIDDLE_STEPS){
     // Apply the twiddle algorithm within this code block.
     double this_error = cum_err*2/N_TWIDDLE_STEPS;
-    cout << p[0]<<" "<<p[1]<<" "<<p[2]<<" "<<p_error<<" "<<d_error<<" "<<i_error<<" "<<this_error<<" "<<best_err<<" "<<num_steps<<endl;
+    //cout << p[0]<<" "<<p[1]<<" "<<p[2]<<" "<<p_error<<" "<<d_error<<" "<<i_error<<" "<<this_error<<" "<<best_err<<" "<<num_steps<<endl;
     if(this_error < best_err){
       best_err = this_error;
       dp[twiddle_index] *= 1.1;

@@ -34,8 +34,9 @@ int main()
 
   PID pid;
   // TODO: Initialize the pid variable.
-  //pid.Init(0.036,0.0005,0.17);
-  pid.Init(0,0,0);
+  pid.Init(0.134668,0.0100153,1.12234); //Settings for the laptop
+  //pid.Init(0.348165,0.00542953,3.84207); // Settings for the desktop
+  //pid.Init(0,0,0); // Settings for twiddle optimization
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
