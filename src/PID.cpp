@@ -15,13 +15,13 @@ void PID::Init(double Kp_i, double Ki_i, double Kd_i) {
   p[0] = Kp_i;
   p[1] = Kd_i;
   p[2] = Ki_i;
-  cout<< p[0]<<" "<<p[1]<<" "<<p[2]<<endl;
   prev_time = clock();
   /* If any one of the coefficients is initialized to a non-zero value from main
      Assume that hyper parameter optimization is not required
   */
   if(Kp_i || Ki_i || Kd_i){ // Any one is non zero
     inTwiddle = false;
+    cout<< p[0]<<" "<<p[1]<<" "<<p[2]<<endl;
   }
   // Else, initialize the twiddle algorithm
   else{ 
@@ -29,9 +29,9 @@ void PID::Init(double Kp_i, double Ki_i, double Kd_i) {
     twiddle_index = 0;
     twiddle_dir = 1;
     // Allow for the twiddle algorithm to start from unequal values for the parameters.
-    p[0] = 0.05;p[1]=0.15;p[2]=0.0005;
+    p[0] = 0.135;p[1]=1.12;p[2]=0.01;
     // Allow for the algorithm to use unequal step sizes.
-    dp[0] = DP/10;dp[1] = DP/2;dp[2] = DP/1000.0;
+    dp[0] = DP/10;dp[1] = DP;dp[2] = DP/100.0;
     p[0] += dp[0];
     best_err = 1000;
   }
@@ -46,7 +46,9 @@ void PID::UpdateError(double cte) {
   d_error = (cte - p_error)/delta_t;
   p_error = cte;
   i_error += (cte*delta_t);
-  cout << p_error<<" "<<d_error<<" "<<i_error <<endl;
+  if(!inTwiddle){
+    cout << p_error<<" "<<d_error<<" "<<i_error <<endl;
+  }
 }
 
 double PID::TotalError() {
@@ -66,7 +68,7 @@ void PID::pid_resetmeas(){
 }
 
 bool PID::twiddle(){
-  const int N_TWIDDLE_STEPS = 1000;
+  const int N_TWIDDLE_STEPS = 2200;
   iStep++;
   static int threshCount=0;
   if((p_error > 3.2)||(p_error<-3.2)){
@@ -77,24 +79,24 @@ bool PID::twiddle(){
     threshCount=0;
   }
   //Run the algorithm and accumulate the error
-  if(iStep > N_TWIDDLE_STEPS/2){
+  if(iStep > 200){
     double temp = p_error;
     cum_err += (temp*temp);
   }
   int num_steps = iStep;
   if(threshCount > 5){
     //If car is off the track for 5 time steps, stop this iteration
-    cum_err = 10000*N_TWIDDLE_STEPS/iStep; //Override with a large error proportional to early failure
+    cum_err = 10000*(N_TWIDDLE_STEPS-200)/iStep; //Override with a large error proportional to early failure
     iStep = N_TWIDDLE_STEPS; //Stop this iteration
     threshCount = 0; // Reset count
   }
   if(iStep == N_TWIDDLE_STEPS){
     // Apply the twiddle algorithm within this code block.
-    double this_error = cum_err*2/N_TWIDDLE_STEPS;
-    //cout << p[0]<<" "<<p[1]<<" "<<p[2]<<" "<<p_error<<" "<<d_error<<" "<<i_error<<" "<<this_error<<" "<<best_err<<" "<<num_steps<<endl;
+    double this_error = cum_err/(N_TWIDDLE_STEPS-200);
+    cout << p[0]<<" "<<p[1]<<" "<<p[2]<<" "<<p_error<<" "<<d_error<<" "<<i_error<<" "<<this_error<<" "<<best_err<<" "<<num_steps<<endl;
     if(this_error < best_err){
       best_err = this_error;
-      dp[twiddle_index] *= 1.1;
+      dp[twiddle_index] *= 1.25;
       twiddle_index = (twiddle_index+1)%3;
       twiddle_dir = 1;
       p[twiddle_index] += dp[twiddle_index];
@@ -102,11 +104,11 @@ bool PID::twiddle(){
     else{
       if(twiddle_dir==0){
 	p[twiddle_index] += dp[twiddle_index]; // Add back
-	dp[twiddle_index] *= 0.9; // Scale down
+	dp[twiddle_index] *= 0.75; // Scale down
 	twiddle_index++; // Increment the parameter index
 	twiddle_dir = 1; // Start with forward direction for next index.
 	if(twiddle_index == 3){ // All three parameters are done for this iteration
-	  double sum_param = 10*dp[0] + 2*dp[1] + 1000*dp[2];
+	  double sum_param = 10*dp[0] + dp[1] + 100*dp[2];
 	  if(sum_param <= DP/5.0){ // Params are less than tolerance
 	    inTwiddle = false;
 	  }
