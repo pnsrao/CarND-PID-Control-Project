@@ -42,22 +42,15 @@ void PID::UpdateError(double cte) {
   clock_t cur_time = clock();
   clock_t diff_time = cur_time - prev_time;
   prev_time = cur_time;
-  double seconds = ((double)diff_time)/CLOCKS_PER_SEC;
-  // Normalise by milliseconds
-  d_error = (cte - p_error)/(seconds*1000);
+  double delta_t  = (1000/3.75)*((double)diff_time)/CLOCKS_PER_SEC; // In units of 3.75 ms
+  d_error = (cte - p_error)/delta_t;
   p_error = cte;
-  i_error += (cte*1000*seconds);
+  i_error += (cte*delta_t);
   cout << p_error<<" "<<d_error<<" "<<i_error <<endl;
 }
 
 double PID::TotalError() {
   double totError = Kp*p_error + Kd*d_error + Ki*i_error;
-  if(totError > 1){
-    totError = 1;
-  }
-  if(totError < -1){
-    totError = -1;
-  }
   return totError;
 }
 
