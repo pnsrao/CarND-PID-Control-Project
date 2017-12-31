@@ -1,3 +1,4 @@
+#include <ctime>
 #ifndef PID_H
 #define PID_H
 
@@ -42,6 +43,9 @@ public:
   */
   double TotalError();
 
+  /* Hold time data structure 
+   */
+  std::clock_t prev_time;
   /*
    * Additional function and variables for twiddle
    */

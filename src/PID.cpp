@@ -15,7 +15,8 @@ void PID::Init(double Kp_i, double Ki_i, double Kd_i) {
   p[0] = Kp_i;
   p[1] = Kd_i;
   p[2] = Ki_i;
-
+  cout<< p[0]<<" "<<p[1]<<" "<<p[2]<<endl;
+  prev_time = clock();
   /* If any one of the coefficients is initialized to a non-zero value from main
      Assume that hyper parameter optimization is not required
   */
@@ -38,14 +39,19 @@ void PID::Init(double Kp_i, double Ki_i, double Kd_i) {
 }
 
 void PID::UpdateError(double cte) {
-  d_error = cte - p_error;
+  clock_t cur_time = clock();
+  clock_t diff_time = cur_time - prev_time;
+  prev_time = cur_time;
+  double seconds = ((double)diff_time)/CLOCKS_PER_SEC;
+  // Normalise by milliseconds
+  d_error = (cte - p_error)/(seconds*1000);
   p_error = cte;
-  i_error += cte;
+  i_error += (cte*1000*seconds);
+  cout << p_error<<" "<<d_error<<" "<<i_error <<endl;
 }
 
 double PID::TotalError() {
   double totError = Kp*p_error + Kd*d_error + Ki*i_error;
-  //cout << p_error<<" "<<d_error<<" "<<i_error<<endl;
   if(totError > 1){
     totError = 1;
   }
