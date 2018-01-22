@@ -7,6 +7,8 @@
 // for convenience
 using json = nlohmann::json;
 
+using namespace std;
+
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
@@ -28,13 +30,18 @@ std::string hasData(std::string s) {
   return "";
 }
 
-int main()
+int main(int argc, char* argv[])
 {
   uWS::Hub h;
 
   PID pid;
   // TODO: Initialize the pid variable.
-  pid.Init(0.323989,0.0282044,2.12); //Settings for the laptop
+  if(argc > 1){
+    pid.Init(atof(argv[1]),atof(argv[2]),atof(argv[3])); 
+  }
+  else{
+    pid.Init(0.323989,0.0282044,2.12); //Settings for the laptop
+  }
   //pid.Init(0,0,0); // Settings for twiddle optimization
   //(0.323989,0.0282044,2.12)(0.134668,0.0100153,1.12234)
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
@@ -52,6 +59,8 @@ int main()
           double cte = std::stod(j[1]["cte"].get<std::string>());
           double speed = std::stod(j[1]["speed"].get<std::string>());
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
+          double throttle = std::stod(j[1]["throttle"].get<std::string>());
+	  //cout << speed << " a "<<angle<<" t "<<throttle<<endl;
           double steer_value;
           /*
           * TODO: Calcuate steering value here, remember the steering value is
@@ -61,13 +70,13 @@ int main()
           */
 	  pid.UpdateError(cte);
 	  steer_value = -pid.TotalError();
-	  if(speed > 1){
+	  if(speed > 100){
 	    steer_value = steer_value*30.0/speed;
 	  }
 	  if(steer_value > 1){steer_value=1;}
 	  if(steer_value <= -1){steer_value=-1;}
 	  bool resetSim = false;
-	  double throttle = 0.3;
+	  throttle = 0.3;
 	  if(pid.inTwiddle){
 	    resetSim = pid.twiddle();
 	    throttle = 0.3;
@@ -87,7 +96,10 @@ int main()
 	    msgJson["steering_angle"] = steer_value;
 	    msgJson["throttle"] = throttle;
 	    auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-	    //std::cout << msg << std::endl;
+	    //cout << "s "<<steer_value*25<<" t "<<throttle << endl;
+	    if((cte > 3.2)||(cte< -3.2)){
+	      exit(0);
+	    }
 	    ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 	  }
         }
