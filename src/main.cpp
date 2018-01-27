@@ -35,15 +35,13 @@ int main(int argc, char* argv[])
   uWS::Hub h;
 
   PID pid;
-  // TODO: Initialize the pid variable.
   if(argc > 1){
     pid.Init(atof(argv[1]),atof(argv[2]),atof(argv[3])); 
   }
   else{
-    pid.Init(0.323989,0.0282044,2.12); //Settings for the laptop
+    pid.Init(0.33,0.01,4); //(0.323989,0.0282044,2.12)
   }
   //pid.Init(0,0,0); // Settings for twiddle optimization
-  //(0.323989,0.0282044,2.12)(0.134668,0.0100153,1.12234)
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -62,24 +60,15 @@ int main(int argc, char* argv[])
           double throttle = std::stod(j[1]["throttle"].get<std::string>());
 	  //cout << speed << " a "<<angle<<" t "<<throttle<<endl;
           double steer_value;
-          /*
-          * TODO: Calcuate steering value here, remember the steering value is
-          * [-1, 1].
-          * NOTE: Feel free to play around with the throttle and speed. Maybe use
-          * another PID controller to control the speed!
-          */
 	  pid.UpdateError(cte);
 	  steer_value = -pid.TotalError();
-	  if(speed > 100){
-	    steer_value = steer_value*30.0/speed;
-	  }
 	  if(steer_value > 1){steer_value=1;}
 	  if(steer_value <= -1){steer_value=-1;}
 	  bool resetSim = false;
 	  // Control throttle based on error
 	  throttle = 0.3;
 	  double abs_cte = cte>0?cte:-cte;
-	  if(abs_cte>2.5){
+	  if(abs_cte>1){
 	    throttle = 0.05;
 	  }
 	  if(pid.inTwiddle){
@@ -102,7 +91,7 @@ int main(int argc, char* argv[])
 	    auto msg = "42[\"steer\"," + msgJson.dump() + "]";
 	    //cout << "s "<<steer_value*25<<" t "<<throttle << endl;
 	    if((cte > 3.2)||(cte< -3.2)){
-	      exit(0);
+	      //exit(0); //Error condition is disabled  in final code
 	    }
 	    ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 	  }

@@ -21,7 +21,7 @@ void PID::Init(double Kp_i, double Ki_i, double Kd_i) {
   */
   if(Kp_i || Ki_i || Kd_i){ // Any one is non zero
     inTwiddle = false;
-    cout<< p[0]<<" "<<p[1]<<" "<<p[2]<<endl;
+    //cout<< p[0]<<" "<<p[1]<<" "<<p[2]<<endl;
   }
   // Else, initialize the twiddle algorithm
   else{ 
@@ -47,7 +47,7 @@ void PID::UpdateError(double cte) {
   p_error = cte;
   i_error += (cte*delta_t);
   if(!inTwiddle){
-    cout << p_error<<" "<<d_error<<" "<<i_error <<endl;
+    //cout << p_error<<" "<<d_error<<" "<<i_error <<endl;
   }
 }
 
