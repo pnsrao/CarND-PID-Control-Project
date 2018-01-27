@@ -76,10 +76,14 @@ int main(int argc, char* argv[])
 	  if(steer_value > 1){steer_value=1;}
 	  if(steer_value <= -1){steer_value=-1;}
 	  bool resetSim = false;
+	  // Control throttle based on error
 	  throttle = 0.3;
+	  double abs_cte = cte>0?cte:-cte;
+	  if(abs_cte>2.5){
+	    throttle = 0.05;
+	  }
 	  if(pid.inTwiddle){
 	    resetSim = pid.twiddle();
-	    throttle = 0.3;
 	  }
 	  if(resetSim){
 	    pid.pid_resetmeas();
